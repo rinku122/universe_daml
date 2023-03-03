@@ -1,0 +1,81 @@
+module Main where
+
+import Daml.Script
+import DA.List
+
+
+type UniversId = ContractId Universe
+
+
+template Universe
+  with
+    astronomer : Party
+    planets : [Text]
+  where
+    signatory astronomer
+    choice AddPlanet : UniversId
+      with 
+        planetName : Text
+      controller astronomer
+      do
+        assertMsg "Planet Already Exists!" (notElem planetName planets) 
+        create this with
+            planets = sort(planetName :: planets) --Add elemnt at zero index and sort will sort that
+            -- planets = reverse(planetName :: planets) --reverse
+            -- planets = planets ++ [planetName] -- For adding a t last, but complexity increases so, only append at start.After plus plus has to be array
+    choice AddPlanets : UniversId
+      with
+        planetsList : [Text]
+      controller astronomer
+      do create this with
+          planets = planetsList ++ planets  --planetsList is already an array. Can also be like :  planets ++ planetsList 
+    choice RemovePlanet : UniversId
+      with 
+        planetToRemove : Text
+      controller astronomer
+      do
+        assertMsg "Planet Doesn,t Exists!" (elem planetToRemove planets)
+        create this with
+              planets = delete  planetToRemove planets  
+          
+              
+           
+
+
+setup : Script UniversId
+setup = script do 
+  rajesh <- allocateParty "Rajesh"
+
+  solarSysyem1 <- submit rajesh do
+    createCmd  Universe 
+      with
+        astronomer = rajesh
+        planets = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn"]
+
+  addedUranus <- submit rajesh do 
+    exerciseCmd solarSysyem1 AddPlanet with
+        planetName = "Uranus"
+
+  addedNeptue <- submit rajesh do 
+    exerciseCmd addedUranus AddPlanet with
+        planetName = "Neptune"
+
+  plutoDiscovered <- submit rajesh do 
+    exerciseCmd addedNeptue AddPlanet with
+        planetName = "Pluto"  
+
+  plutoRemoved <- submit rajesh do
+    exerciseCmd plutoDiscovered RemovePlanet with
+        planetToRemove = "Pluto"   
+
+  plutoReinstalled <- submit rajesh do 
+    exerciseCmd plutoRemoved AddPlanet with
+        planetName = "Pluto"  
+
+  submit rajesh do
+    exerciseCmd plutoReinstalled  AddPlanets with
+        planetsList = ["Milkyway Galaxy","Alpha Centurian","Polar Star"]                       
+        
+            
+
+
