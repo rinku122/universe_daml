@@ -73,8 +73,9 @@ setup = script do
         planetName = "Pluto"  
 
   submit rajesh do
+    let newPlanets = ["Milkyway Galaxy","Alpha Centurian","Polar Star"]  
     exerciseCmd plutoReinstalled  AddPlanets with
-        planetsList = ["Milkyway Galaxy","Alpha Centurian","Polar Star"]                       
+        planetsList =  newPlanets                    
         
             
 
